@@ -12,6 +12,9 @@ import {
   theme,
   Typography,
   message,
+  Form,
+  Input,
+  Modal,
 } from "antd";
 import {
   EditOutlined,
@@ -22,7 +25,14 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getallTasks, createTask } from "../query/api";
+import {
+  getallTasks,
+  createTask,
+  deleteTask,
+  updateTask,
+  updateImportantTask,
+  updateCompleteTask,
+} from "../query/api";
 const { useToken } = theme;
 const { useBreakpoint } = Grid;
 const { Text } = Typography;
@@ -42,6 +52,10 @@ export default function App() {
   const { token } = useToken();
   const screens = useBreakpoint();
   const [data, setData] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [form] = Form.useForm();
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editForm] = Form.useForm();
 
   // const getallTasksQuery = useQuery({
   //   queryKey: ["getallTasksQuery"],
@@ -104,6 +118,68 @@ export default function App() {
     onError: (error) => {
       message.error(
         error.response?.data?.message || error.message || "An error occurred",
+      );
+      console.error("Error:", error);
+    },
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ taskId, requestBody }) => updateTask(taskId, requestBody),
+    onSuccess: (data) => {
+      message.success(data.message);
+      queryClient.invalidateQueries(["getallTasksQuery"]);
+    },
+    onError: (error) => {
+      message.error(
+        error.response?.data?.message || error.message || "An error occurred",
+      );
+      console.error("Error:", error);
+    },
+  });
+
+  const updateImportantTaskMutation = useMutation({
+    mutationFn: (taskId) => updateImportantTask(taskId),
+    onSuccess: (data) => {
+      message.success(data.message || "Task updated successfully");
+      queryClient.invalidateQueries(["getallTasksQuery"]);
+    },
+    onError: (error) => {
+      message.error(
+        error.response?.data?.message ||
+          error.message ||
+          "An error occurred while updating the task.",
+      );
+      console.error("Error:", error);
+    },
+  });
+
+  const updateCompleteTaskMutation = useMutation({
+    mutationFn: (taskId) => updateCompleteTask(taskId),
+    onSuccess: (data) => {
+      message.success(data.message || "Task updated successfully");
+      queryClient.invalidateQueries(["getallTasksQuery"]);
+    },
+    onError: (error) => {
+      message.error(
+        error.response?.data?.message ||
+          error.message ||
+          "An error occurred while updating the task.",
+      );
+      console.error("Error:", error);
+    },
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: deleteTask,
+    onSuccess: (data) => {
+      message.success(data.message || "Task deleted successfully");
+      queryClient.invalidateQueries(["getallTasksQuery"]); // Invalidate the query to refetch data
+    },
+    onError: (error) => {
+      message.error(
+        error.response?.data?.message ||
+          error.message ||
+          "An error occurred while deleting the task.",
       );
       console.error("Error:", error);
     },
@@ -191,7 +267,7 @@ export default function App() {
         <Space>
           <Dropdown
             menu={{
-              items,
+              items: items(record),
             }}
             placement="bottomRight"
           >
@@ -202,21 +278,24 @@ export default function App() {
     },
   ];
 
-  const items = [
+  const items = (record) => [
     {
       key: "1",
       label: "Edit",
       icon: <EditOutlined />,
+      onClick: () => handleEdit(record),
     },
     {
       key: "2",
-      label: "Preview",
+      label: "Mark Complete",
       icon: <EyeOutlined />,
+      onClick: () => handleToggleComplete(record._id),
     },
     {
       key: "3",
       label: "Mark Important",
       icon: <RollbackOutlined />,
+      onClick: () => handleToggleImportant(record._id),
     },
     {
       type: "divider",
@@ -226,14 +305,53 @@ export default function App() {
       label: "Delete",
       icon: <DeleteOutlined />,
       danger: true,
+      onClick: () => handleDelete(record),
     },
   ];
 
-  const handleAdd = async () => {
-    createTaskMutation.mutate({
-      title: "Added right now 23jun",
-      desc: "Added right now 23jun",
+  const handleDelete = (record) => {
+    // console.log(record);
+    deleteTaskMutation.mutate(record._id);
+  };
+
+  const handleAdd = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleEdit = (record) => {
+    editForm.setFieldsValue({
+      id: record._id,
+      title: record.title,
+      description: record.desc,
     });
+    setIsEditModalVisible(true);
+  };
+
+  const handleEditSubmit = (values) => {
+    const { id, title, description } = values;
+    updateTaskMutation.mutate({
+      taskId: id,
+      requestBody: { title, description },
+    });
+    setIsEditModalVisible(false);
+    editForm.resetFields();
+  };
+
+  const handleToggleImportant = (taskId) => {
+    updateImportantTaskMutation.mutate(taskId);
+  };
+
+  const handleToggleComplete = (taskId) => {
+    updateCompleteTaskMutation.mutate(taskId);
+  };
+
+  const handleSubmit = (values) => {
+    createTaskMutation.mutate({
+      title: values.title,
+      desc: values.description,
+    });
+    setIsModalVisible(false);
+    form.resetFields();
   };
 
   const styles = {
@@ -274,6 +392,65 @@ export default function App() {
           scroll={screens.lg ? "" : { x: token.screenXL }}
         />
       </div>
+      <Modal
+        title="Add New Task"
+        visible={isModalVisible}
+        onOk={() => form.submit()}
+        onCancel={() => {
+          setIsModalVisible(false);
+          form.resetFields();
+        }}
+      >
+        <Form form={form} onFinish={handleSubmit} layout="vertical">
+          <Form.Item
+            name="title"
+            label="Title"
+            rules={[{ required: true, message: "Please input the title!" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[
+              { required: true, message: "Please input the description!" },
+            ]}
+          >
+            <Input.TextArea />
+          </Form.Item>
+        </Form>
+      </Modal>
+      <Modal
+        title="Edit Task"
+        visible={isEditModalVisible}
+        onOk={() => editForm.submit()}
+        onCancel={() => {
+          setIsEditModalVisible(false);
+          editForm.resetFields();
+        }}
+      >
+        <Form form={editForm} onFinish={handleEditSubmit} layout="vertical">
+          <Form.Item name="id" hidden>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="title"
+            label="Title"
+            rules={[{ required: true, message: "Please input the title!" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[
+              { required: true, message: "Please input the description!" },
+            ]}
+          >
+            <Input.TextArea />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }

@@ -65,3 +65,54 @@ export async function deleteTask(taskId) {
   });
   return response.data;
 }
+
+export async function updateTask(taskId, requestBody) {
+  const token = getToken();
+  const id = getId();
+  const response = await axios.put(
+    `${baseURL}/update-tasks/${taskId}`,
+    requestBody,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        id: id,
+      },
+    },
+  );
+  return response.data;
+}
+
+export async function updateImportantTask(taskId) {
+  const token = getToken();
+  const id = getId();
+  const response = await axios.put(
+    `${baseURL}/update-imp-tasks/${taskId}`,
+    {},
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        id: id,
+      },
+    },
+  );
+  return response.data;
+}
+
+export async function updateCompleteTask(taskId) {
+  const token = getToken();
+  const id = getId();
+  const response = await axios.put(
+    `${baseURL}/update-complete-tasks/${taskId}`,
+    {},
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        id: id,
+      },
+    },
+  );
+  return response.data;
+}

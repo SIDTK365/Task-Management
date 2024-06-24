@@ -25,20 +25,38 @@ const { authenticateToken } = require("./auth");
 router.post("/create-task", authenticateToken, async (req, res) => {
   try {
     const { title, desc } = req.body;
-    const userId = req.headers.id;
+    const userId = req.query.id; // Get the ID from query parameters
+
+    // console.log("User ID:", userId);
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
     const newTask = new Task({
       title: title,
       desc: desc,
     });
     const savedTask = await newTask.save();
-    await User.findByIdAndUpdate(
+
+    // console.log("Saved Task ID:", savedTask._id);
+
+    // Find the user and update
+    const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $push: { tasks: savedTask._id } },
-      { new: true, runValidators: true },
+      { new: true },
     );
-    res.status(200).json({ message: "Task created!", taskId: savedTask._id });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // console.log("Updated User:", updatedUser);
+
+    res.status(200).json({ message: "Task created and added to user!" });
   } catch (error) {
-    console.error(error);
+    console.log("Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -117,6 +135,22 @@ router.get("/get-imp-tasks", authenticateToken, async (req, res) => {
 });
 
 // Update complete task
+// router.put(
+//   "/update-complete-tasks/:id",
+//   authenticateToken,
+//   async (req, res) => {
+//     try {
+//       const { id } = req.params;
+//       const taskData = await Task.findById(id);
+//       const completeTask = taskData.important;
+//       await Task.findByIdAndUpdate(id, { complete: !completeTask });
+//       res.status(200).json({ message: "Task Updated Successfully!" });
+//     } catch (error) {
+//       console.log(error);
+//       res.status(500).json({ message: "Internal Server Error" });
+//     }
+//   },
+// );
 router.put(
   "/update-complete-tasks/:id",
   authenticateToken,
@@ -124,7 +158,7 @@ router.put(
     try {
       const { id } = req.params;
       const taskData = await Task.findById(id);
-      const completeTask = taskData.important;
+      const completeTask = taskData.complete;
       await Task.findByIdAndUpdate(id, { complete: !completeTask });
       res.status(200).json({ message: "Task Updated Successfully!" });
     } catch (error) {
