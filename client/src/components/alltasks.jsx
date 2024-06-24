@@ -19,6 +19,8 @@ import {
 import {
   EditOutlined,
   EyeOutlined,
+  CheckOutlined,
+  HeartOutlined,
   RollbackOutlined,
   DeleteOutlined,
   EllipsisOutlined,
@@ -288,13 +290,13 @@ export default function App() {
     {
       key: "2",
       label: "Mark Complete",
-      icon: <EyeOutlined />,
+      icon: <CheckOutlined />,
       onClick: () => handleToggleComplete(record._id),
     },
     {
       key: "3",
       label: "Mark Important",
-      icon: <RollbackOutlined />,
+      icon: <HeartOutlined />,
       onClick: () => handleToggleImportant(record._id),
     },
     {
