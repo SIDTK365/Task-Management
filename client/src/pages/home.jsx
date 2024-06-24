@@ -25,6 +25,9 @@ import {
 } from "@ant-design/icons";
 import Logo from "../assets/logo";
 import AllTaskTable from "../components/alltasks";
+import ImportantTask from "../components/important";
+import CompletedTask from "../components/complete";
+import IncompleteTask from "../components/incomplete";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { authActions } from "../store/auth";
@@ -226,9 +229,9 @@ export default function App() {
     return item ? item.label : "Drafts";
   };
   const AllTasks = () => <AllTaskTable />;
-  const ImportantTasks = () => <div>Important Tasks Component</div>;
-  const CompletedTasks = () => <div>Completed Tasks Component</div>;
-  const IncompleteTasks = () => <div>Incomplete Tasks Component</div>;
+  const ImportantTasks = () => <ImportantTask />;
+  const CompletedTasks = () => <CompletedTask />;
+  const IncompleteTasks = () => <IncompleteTask />;
   const renderContent = () => {
     switch (selectedItem) {
       case "alltasks":
