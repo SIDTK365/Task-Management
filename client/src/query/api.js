@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getToken, getId } from "../utility/getToken";
 
-const baseURL = process.env.REACT_APP_BASE_URL;
+const baseURL = "https://task-management-7la6.onrender.com/api/v1";
 
 export async function logInFunction(requestBody) {
   console.log(baseURL, process.env);
