@@ -1,9 +1,10 @@
 import axios from "axios";
 import { getToken, getId } from "../utility/getToken";
 
-const baseURL = "http://localhost:8080/api/v1";
+const baseURL = process.env.REACT_APP_BASE_URL;
 
 export async function logInFunction(requestBody) {
+  console.log(baseURL, process.env);
   const response = await axios.post(
     `${baseURL}/sign-in`,
     JSON.stringify(requestBody),

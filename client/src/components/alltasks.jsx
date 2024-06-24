@@ -80,7 +80,7 @@ export default function App() {
   // Handle the query state
   useEffect(() => {
     if (getallTasksQuery.isSuccess) {
-      console.log("Data fetched successfully:", getallTasksQuery.data);
+      // console.log("Data fetched successfully:", getallTasksQuery.data);
       if (getallTasksQuery.data && Array.isArray(getallTasksQuery.data.data)) {
         const formattedData = getallTasksQuery.data.data.map((item) => ({
           ...item,
