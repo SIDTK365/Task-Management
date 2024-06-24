@@ -168,13 +168,30 @@ router.put(
   },
 );
 
-// Get all important tasks
+// Get all completed tasks
 router.get("/get-complete-tasks", authenticateToken, async (req, res) => {
   try {
     const { id } = req.headers;
     const data = await User.findById(id).populate({
       path: "tasks",
       match: { complete: true },
+      options: { sort: { createdAt: -1 } },
+    });
+    const completetaskData = data?.tasks;
+    res.status(200).json({ data: completetaskData });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Get all incompleted tasks
+router.get("/get-incomplete-tasks", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.headers;
+    const data = await User.findById(id).populate({
+      path: "tasks",
+      match: { complete: false },
       options: { sort: { createdAt: -1 } },
     });
     const completetaskData = data?.tasks;

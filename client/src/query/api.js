@@ -43,6 +43,30 @@ export async function getallTasks() {
   return response.data;
 }
 
+export async function getimpTasks() {
+  const token = getToken();
+  const id = getId();
+  const response = await axios.get(`${baseURL}/get-imp-tasks`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      id: id, // Pass the id as a header
+    },
+  });
+  return response.data;
+}
+
+export async function getcompletedTasks() {
+  const token = getToken();
+  const id = getId();
+  const response = await axios.get(`${baseURL}/get-complete-tasks`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      id: id, // Pass the id as a header
+    },
+  });
+  return response.data;
+}
+
 export async function createTask(requestBody) {
   const token = getToken();
   const id = getId();
